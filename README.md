@@ -34,7 +34,7 @@ Each project builds on a **shared PostgreSQL data model** to encourage reuse, co
 
 ## Repository Structure 
 
-'''text
+```text
 finance_analytics/
 ├── db/                # Database schema, seeds, and migrations
 ├── src/               # Python ETL, transformations, and models
