@@ -1,31 +1,47 @@
 import psycopg2
 import paramiko
+import os
+from dotenv import load_dotenv
+from sshtunnel import SSHTunnelForwarder
 
-target = '' ## Add in .env
-target_user = '' # Add in .env
-target_password = '' # Add in .env 
+load_dotenv()
 
-ssh = paramiko.SSHClient() 
+# Retrieve Info from .env 
+target = os.getenv('target_device')
+target_port = int(os.getenv('target_port'))
+target_user = os.getenv('target_user')
+target_password = os.getenv('target_password') 
 
-def get_connection(target, user, password): 
-    
-    ssh.load_system_host_keys()
+db_host = os.getenv('DB_HOST')
+db_port = int(os.getenv('DB_PORT'))
+db_name = os.getenv('DB_NAME')
+db_user = os.getenv('DB_USER')
+db_password = os.getenv('DB_PASSWORD')
 
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    
-    ssh.connect(target, username=user, password=password, look_for_keys=False)
 
-    ssh_stdin, ssh_stout, ssh_stderr = ssh.exec_command("docker ps")
+def get_db_via_ssh(ssh_target, ssh_port, ssh_user, ssh_password, db_host, db_port, db_name, db_user, db_password):
+    server = SSHTunnelForwarder(
+        (ssh_target, ssh_port), 
+        ssh_username=ssh_user, 
+        ssh_password=ssh_password,
+        remote_bind_address=(db_host, db_port), 
+        local_bind_address=("127.0.0.1", 0) # 0 = a free local port 
+    )
+    server.start()
 
-    output = ssh_stout.readlines()
+    conn = psycopg2.connect(
+        host=db_host,
+        port=server.local_bind_port, 
+        database=db_name,
+        user=db_user,
+        password=db_password
+    )
 
-    ssh.close() 
+    return conn, server 
 
-    return output
+conn, tunnel = get_db_via_ssh(target, target_port, target_user, target_password, db_host, db_port, db_name, db_user, db_password)
 
-test = get_connection(target, target_user, target_password)
-
-if test:
-    print(test)
+if conn:
+    print("Connection Established")
 else: 
     print("Connection Failed")
