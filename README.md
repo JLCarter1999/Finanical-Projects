@@ -46,3 +46,28 @@ finance_analytics/
 ├── dashboards/        # Visualizations (Streamlit / charts)
 ├── data/              # Raw and processed datasets (gitignored)
 └── README.md
+
+---
+
+## Phase 0 - Data Foundation 
+
+Phase 0 establishes a reusable analytics foundation, including:
+- A normalized PostgreSQL schema
+- A fully populated 'dim_date' calendar dimension 
+- Core tables for transactions, expenses, revenue, and financial statements 
+- Referential integrity enforced via primary and foregin keys
+- Synthetic seed data to support forecasting, anomaly detection, and risk analysis 
+- Validation views to confirm data correctness 
+
+No analytical models are implemented in Phase 0 by design 
+
+--- 
+
+## Rebuilding the Database 
+
+to recreate the database from scratch: 
+
+```bash
+psql -d financedatabase -f db/schema.sql 
+psql -d financedatabase -f db/seed_data.sql 
+psql -d financedatabase -f db/views.sql 
