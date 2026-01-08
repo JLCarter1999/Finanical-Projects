@@ -46,7 +46,7 @@ finance_analytics/
 ├── dashboards/        # Visualizations (Streamlit / charts)
 ├── data/              # Raw and processed datasets (gitignored)
 └── README.md
-
+```
 ---
 
 ## Phase 0 - Data Foundation 
