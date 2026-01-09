@@ -1,6 +1,7 @@
 import psycopg2
 import paramiko
 import os
+import pandas as pd 
 from dotenv import load_dotenv
 from sshtunnel import SSHTunnelForwarder
 
@@ -39,9 +40,29 @@ def get_db_via_ssh(ssh_target, ssh_port, ssh_user, ssh_password, db_host, db_por
 
     return conn, server 
 
-conn, tunnel = get_db_via_ssh(target, target_port, target_user, target_password, db_host, db_port, db_name, db_user, db_password)
+def get_data(query, ssh_target, ssh_port, ssh_user, ssh_password, db_host, db_port, db_name, db_user, db_password):
 
-if conn:
-    print("Connection Established")
-else: 
-    print("Connection Failed")
+    # Start SSH Tunnel and Connect to DB 
+    conn, tunnel = get_db_via_ssh(ssh_target, ssh_port, ssh_user, ssh_password, db_host, db_port, db_name, db_user, db_password)
+
+    curr = conn.cursor()
+
+    curr.execute(query)
+
+    data = curr.fetchall()
+    columns = [desc[0] for desc in curr.description]
+    df = pd.DataFrame(data, columns=columns)
+
+    return df 
+
+
+sql_query = """
+SELECT 
+    transaction_id, entity_id, d.date_value, amount, category, transaction_type, description 
+FROM transactions t
+JOIN dim_date d ON d.date_id = t.date_id;  
+"""
+
+test = get_data(sql_query, target, target_port, target_user, target_password, db_host, db_port, db_name, db_user, db_password)
+
+print(test)
