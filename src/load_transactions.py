@@ -58,9 +58,11 @@ def get_data(query, ssh_target, ssh_port, ssh_user, ssh_password, db_host, db_po
 
 sql_query = """
 SELECT 
-    transaction_id, entity_id, d.date_value, amount, category, transaction_type, description 
+    d.month, d.month_name, d.year, SUM(t.amount) AS net_cash_flow
 FROM transactions t
-JOIN dim_date d ON d.date_id = t.date_id;  
+INNER JOIN dim_date d ON d.date_id = t.date_id
+GROUP BY d.month, d.month_name, d.year
+ORDER BY d.year, d.month;
 """
 
 test = get_data(sql_query, target, target_port, target_user, target_password, db_host, db_port, db_name, db_user, db_password)
